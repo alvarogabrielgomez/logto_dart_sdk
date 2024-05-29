@@ -33,7 +33,7 @@ LogtoUserInfoResponse _$LogtoUserInfoResponseFromJson(
     organizationData: (json['organization_data'] as List<dynamic>?)
         ?.map((e) => OrganizationData.fromJson(e as Map<String, dynamic>))
         .toList(),
-    roles: json['roles'] as Map<String, dynamic>?,
+    roles: (json['roles'] as List<dynamic>?)?.map((e) => e as String).toList(),
   );
 }
 

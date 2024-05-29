@@ -32,7 +32,7 @@ class LogtoUserInfoResponse {
   @JsonKey(name: 'organization_data')
   final List<OrganizationData>? organizationData;
   @JsonKey(name: 'roles')
-  final Map<String, dynamic>? roles;
+  final List<String>? roles;
 
   LogtoUserInfoResponse({
     required this.sub,
