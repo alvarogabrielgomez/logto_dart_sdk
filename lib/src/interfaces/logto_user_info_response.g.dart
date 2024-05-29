@@ -33,6 +33,7 @@ LogtoUserInfoResponse _$LogtoUserInfoResponseFromJson(
     organizationData: (json['organization_data'] as List<dynamic>?)
         ?.map((e) => OrganizationData.fromJson(e as Map<String, dynamic>))
         .toList(),
+    roles: json['roles'] as Map<String, dynamic>?,
   );
 }
 
@@ -60,5 +61,6 @@ Map<String, dynamic> _$LogtoUserInfoResponseToJson(
   writeNotNull('organizations', instance.organizations);
   writeNotNull('organization_roles', instance.organizationRoles);
   writeNotNull('organization_data', instance.organizationData);
+  writeNotNull('roles', instance.roles);
   return val;
 }

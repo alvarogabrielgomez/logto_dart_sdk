@@ -31,6 +31,8 @@ class LogtoUserInfoResponse {
   final List<String>? organizationRoles;
   @JsonKey(name: 'organization_data')
   final List<OrganizationData>? organizationData;
+  @JsonKey(name: 'roles')
+  final Map<String, dynamic>? roles;
 
   LogtoUserInfoResponse({
     required this.sub,
@@ -46,6 +48,7 @@ class LogtoUserInfoResponse {
     this.organizations,
     this.organizationRoles,
     this.organizationData,
+    this.roles,
   });
 
   factory LogtoUserInfoResponse.fromJson(Map<String, dynamic> json) =>

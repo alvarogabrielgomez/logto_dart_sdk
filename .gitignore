@@ -31,3 +31,6 @@ migrate_working_dir/
 .packages
 build/
 coverage/*
+
+# FVM Version Cache
+.fvm/
