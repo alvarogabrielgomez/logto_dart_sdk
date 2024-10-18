@@ -10,10 +10,11 @@ import '/src/modules/pkce.dart';
 import '/src/modules/token_storage.dart';
 import '/src/utilities/utils.dart' as utils;
 import 'logto_core.dart' as logto_core;
+import '/src/utilities/constants.dart';
 
+export '/src/exceptions/logto_auth_exceptions.dart';
 export '/src/interfaces/logto_interfaces.dart';
 export '/src/utilities/constants.dart';
-export '/src/exceptions/logto_auth_exceptions.dart';
 
 /**
  * LogtoClient
@@ -161,7 +162,7 @@ class LogtoClient {
       }
 
       return await _tokenStorage.getAccessToken(
-          resource: resource, organizationId: organizationId, scopes: scopes);
+          resource: resource, organizationId: organizationId);
     } finally {
       if (_httpClient == null) httpClient.close();
     }
@@ -187,8 +188,15 @@ class LogtoClient {
   }
 
   // Sign in using the PKCE flow.
-  Future<void> signIn(String redirectUri,
-      [logto_core.InteractionMode? interactionMode]) async {
+  Future<void> signIn(
+    String redirectUri, {
+    logto_core.InteractionMode? interactionMode,
+    String? loginHint,
+    String? directSignIn,
+    FirstScreen? firstScreen,
+    List<IdentifierType>? identifiers,
+    Map<String, String>? extraParams,
+  }) async {
     if (_loading) {
       throw LogtoAuthException(
           LogtoAuthExceptions.isLoadingError, 'Already signing in...');
@@ -212,6 +220,11 @@ class LogtoClient {
         resources: config.resources,
         scopes: config.scopes,
         interactionMode: interactionMode,
+        loginHint: loginHint,
+        firstScreen: firstScreen,
+        directSignIn: directSignIn,
+        identifiers: identifiers,
+        extraParams: extraParams,
       );
 
       final redirectUriScheme = Uri.parse(redirectUri).scheme;
@@ -257,7 +270,8 @@ class LogtoClient {
         idToken: idToken,
         accessToken: tokenResponse.accessToken,
         refreshToken: tokenResponse.refreshToken,
-        expiresIn: tokenResponse.expiresIn);
+        expiresIn: tokenResponse.expiresIn,
+        scopes: tokenResponse.scope.split(' '));
   }
 
   // Sign out the user.
@@ -306,7 +320,7 @@ class LogtoClient {
     try {
       final oidcConfig = await _getOidcConfig(httpClient);
 
-      final accessToken = await _tokenStorage.getAccessToken();
+      final accessToken = await getAccessToken();
 
       if (accessToken == null) {
         throw LogtoAuthException(
