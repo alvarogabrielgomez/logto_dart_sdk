@@ -229,7 +229,7 @@ class LogtoClient {
 
       final redirectUriScheme = Uri.parse(redirectUri).scheme;
 
-      final String callbackUri = await FlutterWebAuth.authenticate(
+      final String callbackUri = await FlutterWebAuth2.authenticate(
         url: signInUri.toString(),
         callbackUrlScheme: redirectUriScheme,
         preferEphemeral: true,
