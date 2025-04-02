@@ -252,6 +252,9 @@ class LogtoClient {
       // acts as a popup and this causes the sign-in flow to fail in some cases
 
       if (kIsWeb) {
+        // Save the code verifier to the web storage
+        await _webStorage.write(key: 'codeVerifier', value: _pkce.codeVerifier);
+
         if (!await launchUrl(signInUri, webOnlyWindowName: '_self')) {
           throw Exception('Could not launch $signInUri');
         }
@@ -276,7 +279,7 @@ class LogtoClient {
   }
 
   /// Handle the sign-in callback and complete the token exchange process for the web platform.
-  Future handleSignInCallback(
+  Future handleWebSignInCallback(
       {required String callbackUri, required String redirectUri}) async {
     final httpClient = _httpClient ?? http.Client();
     // Get the state from the callbackUri param
@@ -287,6 +290,16 @@ class LogtoClient {
           LogtoAuthExceptions.authenticationError, 'state not found');
     }
     _state = state;
+
+    final codeVerifier = await _webStorage.read(key: 'codeVerifier');
+    if (codeVerifier == null) {
+      throw LogtoAuthException(
+          LogtoAuthExceptions.authenticationError, 'code verifier not found');
+    }
+
+    _pkce = PKCE.fromCodeVerifier(codeVerifier);
+    // Remove the code verifier from the web storage
+    await _webStorage.delete(key: 'codeVerifier');
 
     final response =
         await _handleSignInCallback(callbackUri, redirectUri, httpClient);

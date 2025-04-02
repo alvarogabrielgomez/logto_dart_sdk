@@ -17,6 +17,11 @@ class PKCE {
     return PKCE._(codeVerifier, codeChallenge);
   }
 
+  factory PKCE.fromCodeVerifier(String codeVerifier) {
+    String codeChallenge = PKCE.generateCodeChallenge(codeVerifier);
+    return PKCE._(codeVerifier, codeChallenge);
+  }
+
   static String generateCodeVerifier() => utils.generateRandomString();
 
   static String generateCodeChallenge(String codeVerifier) => base64Url
