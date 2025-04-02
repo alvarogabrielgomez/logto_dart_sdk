@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:jose/jose.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '/src/exceptions/logto_auth_exceptions.dart';
 import '/src/interfaces/logto_interfaces.dart';
@@ -237,6 +238,20 @@ class LogtoClient {
 
       final redirectUriScheme = Uri.parse(redirectUri).scheme;
 
+      // If the platform is Web we only redirect to the URL instead of using FlutterWebAuth2.
+      // The handling of the SignIn Callback needs to be done separately.
+      // This is because the webview from FlutterWebAuth2 on web platfomrs
+      // acts as a popup and this causes the sign-in flow to fail in some cases
+
+      if (kIsWeb) {
+        final Uri url0 = Uri.parse(redirectUri);
+
+        if (!await launchUrl(url0, webOnlyWindowName: '_self')) {
+          throw Exception('Could not launch $url0');
+        }
+        return;
+      }
+
       final String callbackUri = await FlutterWebAuth2.authenticate(
         url: signInUri.toString(),
         callbackUrlScheme: redirectUriScheme,
@@ -254,6 +269,14 @@ class LogtoClient {
       _loading = false;
       if (_httpClient == null) httpClient.close();
     }
+  }
+
+  /// Handle the sign-in callback and complete the token exchange process for the web platform.
+  Future handleSignInCallback(
+      {required String callbackUri, required String redirectUri}) {
+    final httpClient = _httpClient ?? http.Client();
+
+    return _handleSignInCallback(callbackUri, redirectUri, httpClient);
   }
 
   // Handle the sign-in callback and complete the token exchange process.
