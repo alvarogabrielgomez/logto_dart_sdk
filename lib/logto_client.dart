@@ -1,9 +1,10 @@
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:http/http.dart' as http;
 import 'package:jose/jose.dart';
-import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '/src/exceptions/logto_auth_exceptions.dart';
@@ -278,12 +279,14 @@ class LogtoClient {
   Future handleSignInCallback(
       {required String callbackUri, required String redirectUri}) async {
     final httpClient = _httpClient ?? http.Client();
-    // Get the state in the web storage
-    final state = await _webStorage.read(key: 'state');
-    final code = await _webStorage.read(key: 'code');
-    final iss = await _webStorage.read(key: 'iss');
-
-    _state = state ?? '';
+    // Get the state from the callbackUri param
+    final uri = Uri.parse(callbackUri);
+    final state = uri.queryParameters['state'];
+    if (state == null) {
+      throw LogtoAuthException(
+          LogtoAuthExceptions.authenticationError, 'state not found');
+    }
+    _state = state;
 
     final response =
         await _handleSignInCallback(callbackUri, redirectUri, httpClient);
