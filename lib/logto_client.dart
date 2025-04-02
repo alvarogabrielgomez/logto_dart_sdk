@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:jose/jose.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
@@ -39,6 +40,9 @@ export '/src/utilities/constants.dart';
  * final logtoClient = LogtoClient(config);
  */
 class LogtoClient {
+  final webStorageKey = 'logto_core.stateKey';
+  late final FlutterSecureStorage _webStorage;
+
   final LogtoConfig config;
 
   late PKCE _pkce;
@@ -63,6 +67,10 @@ class LogtoClient {
   }) {
     _httpClient = httpClient;
     _tokenStorage = TokenStorage(storageProvider);
+
+    if (kIsWeb) {
+      _webStorage = const FlutterSecureStorage();
+    }
   }
 
   // Use idToken to check if the user is authenticated.
@@ -246,6 +254,12 @@ class LogtoClient {
       if (kIsWeb) {
         final Uri url0 = Uri.parse(redirectUri);
 
+        // Store the state in the web storage
+        await _webStorage.write(
+          key: webStorageKey,
+          value: _state,
+        );
+
         if (!await launchUrl(url0, webOnlyWindowName: '_self')) {
           throw Exception('Could not launch $url0');
         }
@@ -273,6 +287,9 @@ class LogtoClient {
   Future handleSignInCallback(
       {required String callbackUri, required String redirectUri}) async {
     final httpClient = _httpClient ?? http.Client();
+    // Get the state in the web storage
+    final state = await _webStorage.read(key: webStorageKey);
+    _state = state ?? '';
 
     final response =
         await _handleSignInCallback(callbackUri, redirectUri, httpClient);
