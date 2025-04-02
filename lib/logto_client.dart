@@ -251,9 +251,8 @@ class LogtoClient {
       // acts as a popup and this causes the sign-in flow to fail in some cases
 
       if (kIsWeb) {
-        final Uri url0 = Uri.parse(redirectUri);
-        if (!await launchUrl(url0, webOnlyWindowName: '_self')) {
-          throw Exception('Could not launch $url0');
+        if (!await launchUrl(signInUri, webOnlyWindowName: '_self')) {
+          throw Exception('Could not launch $signInUri');
         }
       } else {
         final String callbackUri = await FlutterWebAuth2.authenticate(
