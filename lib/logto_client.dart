@@ -40,7 +40,6 @@ export '/src/utilities/constants.dart';
  * final logtoClient = LogtoClient(config);
  */
 class LogtoClient {
-  final webStorageKey = 'logto_core.stateKey';
   late final FlutterSecureStorage _webStorage;
 
   final LogtoConfig config;
@@ -253,13 +252,6 @@ class LogtoClient {
 
       if (kIsWeb) {
         final Uri url0 = Uri.parse(redirectUri);
-
-        // Store the state in the web storage
-        await _webStorage.write(
-          key: webStorageKey,
-          value: _state,
-        );
-
         if (!await launchUrl(url0, webOnlyWindowName: '_self')) {
           throw Exception('Could not launch $url0');
         }
@@ -288,7 +280,10 @@ class LogtoClient {
       {required String callbackUri, required String redirectUri}) async {
     final httpClient = _httpClient ?? http.Client();
     // Get the state in the web storage
-    final state = await _webStorage.read(key: webStorageKey);
+    final state = await _webStorage.read(key: 'state');
+    final code = await _webStorage.read(key: 'code');
+    final iss = await _webStorage.read(key: 'iss');
+
     _state = state ?? '';
 
     final response =
