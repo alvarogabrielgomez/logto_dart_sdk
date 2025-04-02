@@ -249,22 +249,20 @@ class LogtoClient {
         if (!await launchUrl(url0, webOnlyWindowName: '_self')) {
           throw Exception('Could not launch $url0');
         }
-        return;
+      } else {
+        final String callbackUri = await FlutterWebAuth2.authenticate(
+          url: signInUri.toString(),
+          callbackUrlScheme: redirectUriScheme,
+          options: const FlutterWebAuth2Options(
+            /// Prefer ephemeral web views for the sign-in flow. Only has an effect on Android.
+            intentFlags: ephemeralIntentFlags,
+
+            /// Prefer ephemeral web views for the sign-in flow. Only has an effect on iOS.
+            preferEphemeral: true,
+          ),
+        );
+        await _handleSignInCallback(callbackUri, redirectUri, httpClient);
       }
-
-      final String callbackUri = await FlutterWebAuth2.authenticate(
-        url: signInUri.toString(),
-        callbackUrlScheme: redirectUriScheme,
-        options: const FlutterWebAuth2Options(
-          /// Prefer ephemeral web views for the sign-in flow. Only has an effect on Android.
-          intentFlags: ephemeralIntentFlags,
-
-          /// Prefer ephemeral web views for the sign-in flow. Only has an effect on iOS.
-          preferEphemeral: true,
-        ),
-      );
-
-      await _handleSignInCallback(callbackUri, redirectUri, httpClient);
     } finally {
       _loading = false;
       if (_httpClient == null) httpClient.close();
@@ -273,10 +271,14 @@ class LogtoClient {
 
   /// Handle the sign-in callback and complete the token exchange process for the web platform.
   Future handleSignInCallback(
-      {required String callbackUri, required String redirectUri}) {
+      {required String callbackUri, required String redirectUri}) async {
     final httpClient = _httpClient ?? http.Client();
 
-    return _handleSignInCallback(callbackUri, redirectUri, httpClient);
+    final response =
+        await _handleSignInCallback(callbackUri, redirectUri, httpClient);
+    if (_httpClient == null) httpClient.close();
+
+    return response;
   }
 
   // Handle the sign-in callback and complete the token exchange process.
